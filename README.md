@@ -26,7 +26,8 @@ Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journa
 ###2. DIRECTORIES AND FILES
 
 
-	./example.m	:	:	Example of how to use mexBBFMM3D 
+	./example1.m	:	:	Example of how to use mexBBFMM3D for isotropic, regular grid
+    ./example2.m	:	:	Example of how to use mexBBFMM3D for anisotropic, irregular large scale grid 
 	./make.m		:	Makefile 
 	./include/		:	Relevant header files  
 	./mexFMM3D.cpp	:	mex function  
