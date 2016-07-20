@@ -1,23 +1,27 @@
-#mexBBFMM3D  
+##Quick Start Guide for mexBBFMM3D, a MATLAB interface for <a href="http://www.sciencedirect.com/science/ article/pii/S0021999109004665"> Black Box Fast Multipole Method (BBFMM3D)  
+==========
+###Function
+Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
+
+###Overview
+The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM2D has linear complexity O(N). As an example, for a matrix of size 10,000x10,000 multiplied to 10,000 x 100, the BBFMM2D takes 1.4 seconds, while the direct approach takes 8.1 seconds, on a single processor laptop. The table below shows computation time on a single core CPU.
+
+|   N      |  Time in seconds  |     
+| -------: |:-----------------:|   
+| 10,000   |                1.4|
+| 100,000  |               11.4|  
+| 1,000,000 |             126.2 |
+
+BBFMM3D performs the multiplication by an approximation that relies on Chebyshev interpolation. For details about the method please see Fong and Darve, 2009. The method has an approximation error that can be controlled by input parameters, which can be adjusted depending on the desired accuracy.  The package BBFMM3D is written in C++ (https://github.com/ruoxi-wang/BBFMM3D). mexBBFMM3D provides a MATLAB interface for the package BBFMM3D. The corresponding code for two dimensional cases can be found at https://github.com/judithyueli/mexBBFMM2D.
 
 
+###Disclaimer
 
-###1. INTRODUCTION
+This is a quick-start guide with instructions on how to set up and use mexBBFMM3D in MATLAB, with two example m-file that can be used to perform matrix-vector and matrix-matrix multiplication for regular and irregular grids. A reasonably good knowledge of MATLAB is assumed and minimal understanding of the FMM theory is needed.  
 
-mexBBFMM3D is MATLAB interface for an open source package (BBFMM3D) of the <a href="http://www.sciencedirect.com/science/ article/pii/S0021999109004665">Black-box Fast Multipole Method</a> in 3 dimensions.   
-The Black-box Fast Multipole Method is an O(N) fast multipole method, which is a technique to calculate sums of the form  
+For a more involved description of the code and the method please see [here](https://github.com/ruoxi-wang/BBFMM3D), and for a full description of the algorithm see [Fong and Darve 2006] in section [__Reference__](#ref).
 
-![](http://latex.codecogs.com/gif.latex?f%28x_i%29%20%3D%20%5Cdisplaystyle%20%5Csum_%7Bj%3D1%7D%5EN%20K%28x_i%2Cy_j%29%20%5Csigma_j%2C%20%5C%2C%5C%2C%5C%2C%20%5Cforall%20i%20%5Cin%5C%7B1%2C2%2C%5Cldots%2CN%5C%7D)
-
-where ![](http://latex.codecogs.com/gif.latex?K%28x_i%2Cx_j%29) is kernel function, ![](http://latex.codecogs.com/gif.latex?x_i) are observation points, ![](http://latex.codecogs.com/gif.latex?y_j) are locations of sources, and ![](http://latex.codecogs.com/gif.latex?%5Csigma_i) are charges at corresponding locations.
-BBFMM3D provides an O(N) solution to matrix-vector products of the type Ax. In that case the relation between A and K is:
-![](http://latex.codecogs.com/gif.latex?A_%7Bij%7D%20%3D%20K%28x_i%2Cy_j%29)
-
-
-
-This implementation of the FMM differs from other methods by the fact that it is applicable to all smooth kernels K. [Give examples of RBF kernels, 1/r, log r, Stokes, etc.].
-
-The approximation scheme used in the FMM relies on Chebyshev interplation to construct low-rank approximations for well-separated clusters. In addition the use of Singular Value Decomposition ensures that the computational cost is minimal. In particular the rank is optimally chosen for a given error. 
+In this guide, we will use the example of the multiplication of a Gaussian covariance matrix Q (termed as Gaussian kernel) with a matrix H. The method can also be applied for other smooth kernels (see section [__Appendix__](#ref_app)).
 
 Please cite the following paper if you use this code:
 
@@ -26,103 +30,60 @@ Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journa
 ###2. DIRECTORIES AND FILES
 
 
-	./example1.m	:	:	Example of how to use mexBBFMM3D for isotropic, regular grid
-    ./example2.m	:	:	Example of how to use mexBBFMM3D for anisotropic, irregular large scale grid 
+	./example1.m		:	Example of how to use mexBBFMM3D for isotropic, regular grid
+        ./example2.m		:	Example of how to use mexBBFMM3D for anisotropic, irregular large scale grid 
 	./make.m		:	Makefile 
 	./include/		:	Relevant header files  
-	./mexFMM3D.cpp	:	mex function  
+	./mexFMM3D.cpp	        :	mex function  
 	./eigen/		:	Eigen Library  
 	./BBFMM3D/		: 	BBFMM3D library
 	./README.md		:	This file  
+	./Troubleshooting.md    :       Instructions for troubleshooting compilation problems
 	
-###3. TUTORIAL
-####3.1 To Get Started  
-To check whether things are set up correctly, you can go to the directory where this README.m is and run example.m.  Going through example.m should be self-explanatory, but more details are provided below. 
-####3.2 Basic usage
+###Quick start guide
 
-#####3.2.1 Complie
+####Step 1:  Download the code and supporting software
 
-To use mexFMM3D, you need to compile first.  
+Supporting software includes the fft library (http://www.fftw.org/fftw-2.1.5.tar.gz) and Matlab SDK files. 
 
-	syms r;                          
-	kernel = 1 ./ r.^2;                
-	outputfile = 'mexFMM3D';
-	homogen = -2;                    
-	symmetry = 1;                     
-                                 	 
-	make(r,kernel,homogen,symmetry,outputfile);
-where 
+####Step 1a:  Check if you have MEX and MATLAB Symbolic Math Toolbox set up in Matlab
 
-*  r: 		
-	the distance of two points (radius)
-*  kernel:	
-	 the kernel function (radius basis function)
-*  outputfile: 	
-	 the name of the routine you need to run
-*  homogen:		
-	The homogeneous property of kernel.(The cost and memory requirements of the pre-computation step can be reduced for the case of homogeneous kernels.)
-	* homogen = 0: if the kernel funtion is not homogeneous.
-	* homogen = m: if the kernel funtion is homogeneous of degree m, i.e. <img src="http://latex.codecogs.com/gif.latex? $K(\alpha x, \alpha y) = \alpha^m K(x,y)$." border="0"/>
-* symmetry:   
-	The symmetry property of the kernel.
-	* symmetry = 0:  no symmetric property; 
-	* symmetry = 1: symmetric kernel; 		[K(x,y) = K(y,x)]
-	* symmetry = -1: anti-symmetric kernel.[K(x,y) = - K(y,x)]
+This package relies on MATLAB MEX functions and MATLAB Symbolic Math Toolbox. In order to use MEX functions, you should setup mex.
 
-#####3.2.2 Set up problems and parameters for BBFMM3D
-This is a sample problem, make sure your points stay in the cell of length L.
-	
-	% Info on dimensions
-	Ns  = 10000;    % Number of sources in simulation cell
-	Nf  = 10000;    % Number of fields in simulation cell
-	m   = 2;        % number of columns of H
+Setup MEX by typing the following MATLAB command
+```
+      mex -setup  
+```
 
-	% 3-D locations, stored column-wise i.e. (x | y | z)
-	source = rand(Ns,3) - 0.5;
-	% field = rand(Nf,3) - 0.5; 
-	field = source;
+Attention Mac users: If you have upgraded to Xcode 7, see [Answer](http://www.mathworks.com/matlabcentral/answers/246507-why-can-t-mex-find-a-supported-compiler-in-matlab-r2015b-after-i-upgraded-to-xcode-7-0) by MathWorks Support Team on 28 Dec 2015.
 
-	H = rand(Ns,m); 
-	
-	L = 1.0;            % Length of simulation cell (assumed to be a cube)
-	nCheb = 4;          % Number of Chebyshev nodes per dimension
-	level = 3;          % Level of FMM tree
-	use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
-	
-	
-	
+Once mex is set up successfully, to ensure that  MEX is installed, try the following commands:
+```
+copyfile([matlabroot,'/extern/examples/mex/arraySize.c'],'./','f')     
+mex -v arraySize.c     
+arraySize(5000) 
+```
 
-* L:   
-	Length of simulation cell (assumed to be a cube).
-* level:  
-	The number of levels in the hierarchy tree
-* nCheb:  
-	Number of Chebyshev nodes per dimension ( the larger nCheb is, the better accuracy it will achive)
-* use_chebyshev(int):  
-	Label to indicate whether using chebyshev interpolation formula or uniform interpolation formula.  
-	use_chebyshev = 1: chebyshev interplation formula (recommended if there is no memory concern)
-	use_chebyshev = 0: uniform interpolation formula.
+The last two lines of the screen output should read  
+
+```
+Dimensions: 5000x5000
+Size of  array in kilobytes: 24414
+```
+
+If you have trouble with setting up mex, see __Trouble Shooting.md__
+
+####Step 1b:  Download the code from https://github.com/amaliak/randSVD-with-BBFMM3D
+
+A folder called `randSVD-with-BBFMM3D-master` will be downloaded. Copy the folder `randSVD-with-BBFMM3D-master` to your specific working directory. In MATLAB, set the current folder to be the directory where the downloaded folder was copied. You will see the folders
+`BBFMM3D\` and `Eigen\`, as well as an m-file called (`compilemex.m`) and two example m-files (`example1.m` and `example2.m`)  that we will use in this quick start quide. These m-files will be used to compile, set-up, test and use the `BBFMM3D`. The user only needs to change the input to the example m-files. No modifications will be needed to other m-files or the contents of the folder `BBFMM3D` which includes the c++ source code. 
+
+Note: For Step 2 you have to operate in the main directory of mexBBFMM3D, which contains `make.m`, For Step 3 or 4, you can call the generated MEX-files (e.g., `ExecName.mexmaci64`) by moving them to your own working directory, or add the main directory of mexBBFMM3D to the path.
+
+####Step 2: Compile the MEX file
 
 
 
-#####3.2.3 Compute matrix-vector(s) multiplication
-
-	QH = mexFMM3D(source, field,H,nCheb, level, L, use_chebyshev);
-	
-If you want to compare it with exact computation:  
-	
-	[QH, QH_exact] = mexFMM3D(source, field,H,nCheb, level, L, use_chebyshev);
-
-
-####3.3 Pre-computation
-
-The power of this package is in the pre-computing part, which is much more computationally expensive than computing part. This package takes advantage of the fact that for a given kernel and number of chebyshev nodes, the precomputing part is the same, so for a fixed kernel and number of chebyshev nodes, it generates 3 files storing information of FMM tree in the folder *BBFMM3D/output/*. Everytime when we use the same kernel type and number of chebyshev nodes, we can directly read from the files, which would save a lot of time.
-
-Note: it is true that sometimes with the pre-computation step, the code will be slower than direct calculation. But if the file already exists, then when doing more computations it will be faster than direct calculation. If you change the kernel, make sure to delete the existed file in *BBFMM3D/output/* before you run the code.
-
-###3.4
-
-The C++ version of BBFMM3D has more options, and is faster than using this MATLAB interface.
 
 
 
