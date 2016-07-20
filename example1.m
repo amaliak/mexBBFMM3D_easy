@@ -1,15 +1,25 @@
-function QH = example1(ExecName,Kernel,corlength,H)
-
-% This is an example file with the input for using mexBBFMM3D to multiply
-% the covariance matrix specified in kernelfun.hpp
-% for a regular grid, with matrix H. 
+function QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)
+% This is an example file for ufing mexBBFMM3D to compute the product of a
+% covariance kernel Q with matrix H, where Q is defined on an regular isotropic grid
+% The grid must be provided as unique x,y and z locations and all (x,y,z)
+% triplets will be created automatically
+% -----------
+%
+% Example usage: 
+%                grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
+%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1))
 % -----------
 % Input:
 %     ExecName : the name of the mexfile for the Kernel chosen
+%     grid     : structure with vectors grid.x, grid.y, grid.z
+%                each vector containing x,y and z coordinates
+%                respectively
 %     Kernel   : covariance type, e.g. 'GAUSSIAN'
 %     corlength: correlation length, isotropic
 %                anisotropy in z direction supported, see code
 %     H        : matrix by which Kernel is multiplied
+%     TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to
+%     determine parameters (nCheb) for desired accuracy. if set to 0, the 
 %
 % Output:
 %       ExecName.mexmaci64: executable for mex file for given configuration
@@ -17,48 +27,52 @@ function QH = example1(ExecName,Kernel,corlength,H)
 %
 % Type "help compilemex" for more information on the covariance options
 % Type "help runmexBFMM3D" for more information on the input variables in this file 
-clearvars -except H ExecName Kernel corlength
 
-%%%%%%%%%%%%%%%%%%% PART MODIFIED BY THE USER  %%%%%%%%%%%%%%%%%%%%%%%%%%
-TestingMode = true;
-recompile = 1;
+recompile = 0;
+if isempty(TestingMode)
+    TestingMode = true;
+end
+
+if TestingMode
+    recompile = 1;
+end
 
 if recompile
     compilemex(ExecName,Kernel,corlength)
+    save lastcompiled.mat ExecName Kernel corlength
+else
+    disp('ExecName, Kernel, Corlength ignored')
+    disp('Using executable last compiled')
+    disp('------------------------------')
+    load lastcompiled.mat
+    disp(['Executable Name is ',ExecName])
+    disp(['Kernel type is ',Kernel])
+    disp(['Correlation length in x,y,z is ',num2str(corlength)])
 end
 
-
-% Modify xloc and yloc for your own example
-% 3-D locations, stored column-wise i.e. (x | y | z)
-x = -62:4:62;
-y = -62:4:62;
-z = -9:3:9;
-%7168
-
 % FMM parameters
-% increase to decrease relative error and increase accuracy and comp.cost
+% Run code in TestingMode to get relative error of FMM vs direct
+% multiplication; increase nCheb and Level to increase accuracy *and* comp.cost
 nCheb = 4;          % Number of Chebyshev nodes per dimension
 level = 5;          % Level of FMM tree
 use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
 
-%%%%%%%%%%%%%%%%%%% END OF PART MODIFIED BY THE USER  %%%%%%%%%%%%%%%%%%%
-
 %%%%%%%%% THE REST OF THIS M-FILE DOES NOT NEED TO BE MODIFIED %%%%%%%%%%
 
-% Info on dimensions
+% Setting up the regular grid
 
-nx = length(x); ny = length(y); nz=length(z);
+nx = length(grid.x); ny = length(grid.y); nz=length(grid.z);
 Ns  = nx*ny*nz;    % Number of sources in simulation cell
 Nf  = Ns;          % Number of fields in simulation cell
 % Length of simulation cell (assumed to be a cube)
-L = max(max(max(x) - min(x), max(y)-min(y)),max(z)-min(z));
+L = max(max(max(grid.x) - min(grid.x), max(grid.y)-min(grid.y)),max(grid.z)-min(grid.z));
 source = zeros(nx*ny*nz,3);
 for i = 1:ny
     for j = 1:nx
         for k = 1:nz
-            source((i-1)*nx*nz + (j-1)*nz + k ,1) = x(i);
-            source((i-1)*nx*nz + (j-1)*nz + k ,2) = y(j);
-            source((i-1)*nx*nz + (j-1)*nz + k ,3) = z(k);
+            source((i-1)*nx*nz + (j-1)*nz + k ,1) = grid.x(i);
+            source((i-1)*nx*nz + (j-1)*nz + k ,2) = grid.y(j);
+            source((i-1)*nx*nz + (j-1)*nz + k ,3) = grid.z(k);
         end
     end
 end

@@ -15,7 +15,7 @@ function compilemex(execname,kerneltype,corlength)
 %               more kernels can be added in the if statment below
 %               for kernels supported see https://github.com/sivaramambikasaran/BBFMM2D
 %        corlength: correlation length - isotropic. Anisotropy can be
-%        included by scaling, see example1.m
+%        included by scaling, see example2.m
 %        homogen:  K(ax, ay) = a^m K(x,y),=> homogen = m
 %        symmetry = 1;    symmetric: 1; non-symmetric: 0; % anti-symmetric: 0
 %
