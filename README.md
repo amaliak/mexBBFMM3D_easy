@@ -80,7 +80,65 @@ A folder called `randSVD-with-BBFMM3D-master` will be downloaded. Copy the folde
 
 Note: For Step 2 you have to operate in the main directory of mexBBFMM3D, which contains `make.m`, For Step 3 or 4, you can call the generated MEX-files (e.g., `ExecName.mexmaci64`) by moving them to your own working directory, or add the main directory of mexBBFMM3D to the path.
 
-####Step 2: Compile the MEX file
+####Step 2: Compile the MEX file to make sure compilation works
+
+__A.__ Open file `compilemex.m` and read instructions.
+
+__B.__ Choose your kernel function type, e.g. `GAUSSIAN` and the correlation length
+
+__C.__ Give your BBFMM3D case a name, e.g. `Test1`
+
+Compile by giving the command: `compilemex(ExecName,Kernel,corlength)` 
+This will compile the source code and generate a MEX-file with your provied name (e.g. `ExecName.mexmaci64`). The extension (`.mexmaci64`) will depend on your platform.
+
+NOTE!! Recompile the MEX-file (step 2) when the kernel function is changed.
+
+If compilation is successful, you should see the message `mex compiling is successful!`
+
+
+####Step 3: Run example1.m for regular grid
+
+__A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH
+__B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`
+
+% Example usage: 
+%                grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
+%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
+% -----------
+% Input:
+%     ExecName : the name of the mexfile for the Kernel chosen
+%     grid     : structure with vectors grid.x, grid.y, grid.z
+%                each vector containing x,y and z coordinates
+%                respectively
+%     Kernel   : covariance type, e.g. 'GAUSSIAN'
+%     corlength: correlation length, isotropic
+%                anisotropy in z direction supported, see code
+%     H        : matrix by which Kernel is multiplied
+%     TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to
+%     determine parameters (nCheb) for desired accuracy. if set to 0, the 
+%
+% Output:
+%       ExecName.mexmaci64: executable for mex file for given configuration
+%       QH       : Product of Kernel chosen by matrix H specified in input
+%
+
+When run in TestingMode (TestingMode = 1), the code will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout:
+
+
+Starting FMM computation...
+
+Pre-computation time: 1.9583
+FMM computing time: 4.6788
+FMM total time: 6.6370
+
+Starting direct computation...
+Direct calculation starts from: 0 to 0.
+Exact computing time: 8.2686
+Relative Error: 9.724730e-05
+
+If the Relative Error is deemed low enough, the code can be run with TestingMode=0, in which case the direct multiplication is not performed for comparison. 
+
+
 
 
 
