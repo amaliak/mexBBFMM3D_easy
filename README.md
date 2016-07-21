@@ -13,7 +13,7 @@ The Fast Multipole Method (FMM) is an algorithm that performs fast multiplicatio
 | 1,000,000 |             126.2 |
 
 
-BBFMM3D performs the multiplication by an approximation that relies on Chebyshev interpolation (Fong and Darve, 2009). The method has an approximation error that can be controlled by input parameters, which can be adjusted depending on the desired accuracy. The package BBFMM3D is written in C++ for which mexBBFMM3D provides a Matlab interface. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
+BBFMM3D performs the multiplication by an approximation that relies on Chebyshev interpolation. The method has an approximation error that can be controlled by input parameters, which can be adjusted depending on the desired accuracy. The package BBFMM3D is written in C++ for which mexBBFMM3D provides a Matlab interface. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
 
 
 ###Disclaimer
