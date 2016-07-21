@@ -1,15 +1,17 @@
-##Quick Start Guide for mexBBFMM3D, a MATLAB interface for <a href="http://www.sciencedirect.com/science/ article/pii/S0021999109004665"> Black Box Fast Multipole Method (BBFMM3D)  
+##Quick Start Guide for mexBBFMM3D, a MATLAB interface for <a href="http://www.sciencedirect.com/science/ article/pii/S0021999109004665"> Black Box Fast Multipole Method for 3D problems (BBFMM3D)  
 
 ----------------
 ###Function
-BBFMM3D: Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
-randSVD: Performs approximate singular value decomposition 
-randSVD with BBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used for fast multiplication of the Q matrix with random vectors within the randSVD code. 
+1. BBFMM3D: Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
+
+2. randSVD: Performs approximate singular value decomposition 
+
+3. randSVD with BBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used for fast multiplication of the Q matrix with random vectors within the randSVD code. 
 
 ###BBFMM3D: Overview
-The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM3D has linear complexity O(N). The table below shows computation times on a single core CPU when using the BBFMM3D and when using direct multiplication.
+The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM3D has linear complexity O(N). The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplication. The approximation error can be controlled by the number of Chebyshev nodes used, which can be adjusted to achieve the desired accuracy. mexBBFMM3D provides a Matlab interface for the BBFMM3D package, which is written in C++. Note that the C++ code is faster than the Matlab interface. 
 
-The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplication. The approximation error can be controlled by the number of Chebyshev nodes used, which can be adjusted to achieve the desired accuracy. mexBBFMM3D provides a Matlab interface for the BBFMM3D package, which is written in C++. Note that the C++ code is faster than the Matlab interface. 
+The table below shows computation times on a single core CPU when using the mexBBFMM3D package and when using direct multiplication.
 
 |   N      |  Time for BBFMM3D (sec)  |  Time for direct multiplication (sec) |   
 | -------: |:------------------------:|:-------------------------------------:| 
@@ -18,14 +20,11 @@ The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplica
 | 100,000  |                       9.6|  1505.3                               |
 
 
-The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
-
-
 ###Disclaimer
 
 This is a quick-start guide with instructions on how to set up and use mexBBFMM3D in MATLAB, with two example m-file that can be used to perform matrix-vector and matrix-matrix multiplication for regular and irregular grids. A reasonably good knowledge of MATLAB is assumed and minimal understanding of the FMM theory is needed.  
 
-For a more involved description of the code and the method please see [here](https://github.com/ruoxi-wang/BBFMM3D), and for a full description of the algorithm see [Fong and Darve 2006] in section [__Reference__](#ref).
+For a more involved description of the code and the method please see [here](https://github.com/ruoxi-wang/BBFMM3D), and for a full description of the algorithm see [Fong and Darve 2006] in section [__Reference__](#ref). The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
 
 In this guide, we will use the example of the multiplication of a Gaussian covariance matrix Q (termed as Gaussian kernel) with a matrix H. The method can also be applied for other smooth kernels (see section [__Appendix__](#ref_app)).
 
