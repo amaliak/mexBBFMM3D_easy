@@ -1,19 +1,22 @@
 ##Quick Start Guide for mexBBFMM3D, a MATLAB interface for <a href="http://www.sciencedirect.com/science/ article/pii/S0021999109004665"> Black Box Fast Multipole Method (BBFMM3D)  
-==========
+
+----------------
 ###Function
-Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
+BBFMM3D: Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
+randSVD: Performs approximate singular value decomposition 
+randSVD with BBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used for fast multiplication of the Q matrix with random vectors within the randSVD code. 
 
 ###Overview
-The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM2D has linear complexity O(N). As an example, for a matrix of size 10,000x10,000 multiplied to 10,000 x 100, the BBFMM2D takes 1.4 seconds, while the direct approach takes 8.1 seconds, on a single processor laptop. The table below shows computation time on a single core CPU.
+The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM3D has linear complexity O(N). The table below shows computation times on a single core CPU when using the BBFMM3D and when using direct multiplication.
 
-|   N      |  Time in seconds  |     
-| -------: |:-----------------:|   
-| 10,000   |                1.4|
-| 100,000  |               11.4|  
-| 1,000,000 |             126.2 |
+|   N      |  Time for BBFMM3D (sec)  |  Time for direct multiplication (sec) |   
+| -------: |:------------------------:|:-------------------------------------:| 
+| 12,500   |                       4.3|  22.8                                 |
+| 50,000   |                      5.27|  367.9                                |
+| 100,000  |                       9.6|  1505.3                               |
 
 
-BBFMM3D performs the multiplication by an approximation that relies on Chebyshev interpolation. The method has an approximation error that can be controlled by input parameters, which can be adjusted depending on the desired accuracy. The package BBFMM3D is written in C++ for which mexBBFMM3D provides a Matlab interface. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
+The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplication. The approximation error can be controlled by the number of Chebyshev nodes used, which can be adjusted to achieve the desired accuracy. mexBBFMM3D provides a Matlab interface for the BBFMM3D package, which is written in C++. Note that the C++ code is faster than the Matlab interface. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
 
 
 ###Disclaimer
@@ -45,18 +48,21 @@ Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journa
 
 ####Step 1:  Download the code and supporting software
 
-Supporting software includes the fft library (http://www.fftw.org/fftw-2.1.5.tar.gz) and Matlab SDK files. 
+Supporting software includes:
+- The fft library (http://www.fftw.org/fftw-2.1.5.tar.gz)
+- Matlab SDK files. If you get errors related to SDK files, see Troubleshooting.md 
+
+Attention Mac users: If you have upgraded to Xcode 7, see [Answer](http://www.mathworks.com/matlabcentral/answers/246507-why-can-t-mex-find-a-supported-compiler-in-matlab-r2015b-after-i-upgraded-to-xcode-7-0) by MathWorks Support Team on 28 Dec 2015.
 
 ####Step 1a:  Check if you have MEX and MATLAB Symbolic Math Toolbox set up in Matlab
 
 This package relies on MATLAB MEX functions and MATLAB Symbolic Math Toolbox. In order to use MEX functions, you should setup mex.
 
 Setup MEX by typing the following MATLAB command
+
 ```
       mex -setup  
 ```
-
-Attention Mac users: If you have upgraded to Xcode 7, see [Answer](http://www.mathworks.com/matlabcentral/answers/246507-why-can-t-mex-find-a-supported-compiler-in-matlab-r2015b-after-i-upgraded-to-xcode-7-0) by MathWorks Support Team on 28 Dec 2015.
 
 Once mex is set up successfully, to ensure that  MEX is installed, try the following commands:
 ```
@@ -101,35 +107,35 @@ If compilation is successful, you should see the message `mex compiling is succe
 
 ####Step 3a: Run example1.m for a regular grid
 
-__A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH
+__A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH, unless TestingMode=0.
 
 __B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. The grid must be provided as unique x,y and z locations and (x,y,z) triplets will be created automatically.
 
 
 Input:
-    - ExecName : the name of the mexfile for the Kernel chosen
+    - `ExecName` : the name of the mexfile for the Kernel chosen
     
-    - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing x,y and z coordinates respectively
+    - `grid`     : structure with vectors grid.x, grid.y, grid.z each vector containing x,y and z coordinates respectively
     
-    - Kernel   : covariance type, e.g. 'GAUSSIAN'
+    - `Kernel`   : covariance type, e.g. 'GAUSSIAN'
     
-    - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+    - `corlength`: correlation length, isotropic anisotropy in z direction supported, see code
     
-    - H        : matrix by which Kernel is multiplied
+    - `H`       : matrix by which Kernel is multiplied
     
-    - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. if set to 0, ...
+    - `TestingMode`: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. if set to 0, the direct multiplication is not performed and the last compiled executable is used for BBFMM3D.
 
  Output:
-    - ExecName.mexmaci64: executable for mex file for given configuration
+    - `ExecName.mexmaci64`: executable for mex file for given configuration
     
-    - QH       : Product of Kernel chosen by matrix H specified in input
+    - `QH`       : Product of Kernel chosen by matrix H specified in input
 
 Example usage: 
 ```
 	      grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
               QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
 ```
-When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout:
+When run in TestingMode (`TestingMode = 1`), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout:
 
 ```
 Starting FMM computation...
@@ -144,44 +150,60 @@ Exact computing time: 8.2686
 Relative Error: 9.724730e-05
 ```
 
-If the Relative Error is deemed low enough, the code can be run with TestingMode=0, in which case the direct multiplication is not performed for comparison. 
+If the Relative Error is deemed low enough, the code can be run with `TestingMode=0`, in which case the direct multiplication is not performed for comparison. Note that the code will use the last compiled executable, even if otherwise specified in the input variables of the example. 
 
-Example printout when TestingMode = 0: 
+Example printout when `TestingMode = 0`: 
+```
+ExecName, Kernel, Corlength ignored
+Using executable last compiled
+------------------------------
+Executable Name is TESTNAME
+Kernel type is GAUSSIAN
+Correlation length in x,y,z is 30
 
+Starting FMM computation...
 
-####Step 3b: Run example2.m for an irregular  grid with anisotropy
+Pre-computation time: 0.0604
+FMM computing time: 3.9679
+FMM total time: 4.0283
+```
+####Step 3b: Run example2.m for an irregular grid with anisotropy
 
-__A.__ Open file `example2.m` and read instructions. The example recompiles the code and then computes QH
+__A.__ Open file `example2.m` and read instructions. The example recompiles the code and then computes QH, unless TestingMode=0.
 
 __B.__ Choose input variables for `QH = example2(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. Q is defined on an IRREGULAR grid with the option for anisotropy in the z direction. The grid must be provided as (x,y,z) triplets. 
 
+The input is as in `example1.m`, with the exception that the grid shoudl now contain all x,y and z triplets, so that each is an `Nx1` vector.
+
 Input: 
-     - ExecName : the name of the mexfile for the Kernel chosen
+     - `ExecName` : the name of the mexfile for the Kernel chosen
      
-     - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing all x,y and z coordinates respectively
+     - `grid`     : structure with vectors grid.x, grid.y, grid.z each vector containing all x,y and z triplets 
      
-     - Kernel   : covariance type, e.g. 'GAUSSIAN'
+     - `Kernel`   : covariance type, e.g. 'GAUSSIAN'
      
-     - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+     - `corlength`: correlation length in x and y, isotropic 
      
-     - H        : matrix by which Kernel is multiplied
+     - `corlengthz`: correlation length in z 
+
+     - `H`        : matrix by which Kernel is multiplied
      
-     - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. 
+     - `TestingMode`: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. 
 
  Output:
-       - ExecName.mexmaci64: executable for mex file for given configuration
+       - `ExecName.mexmaci64`: executable for mex file for given configuration
        
-       - QH       : Product of Kernel chosen by matrix H specified in input
+       - `QH`       : Product of Kernel chosen by matrix H specified in input
 
 Example usage: 
 
 ```
 	        load('./coord_htr.mat')
                 grid.x = x_htr; grid.y = y_htr; grid.z = z_htr;
-                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(23910,1),1)
+                QH = example1('TESTNAME',grid,'GAUSSIAN',50,10,ones(23910,1),1)
 ```
 
-When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout are similar as in example 1 above. 
+When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. The screen printout is the same as in example1 above. 
 
 ### APPENDIX<a name="ref_app"></a>
 
