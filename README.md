@@ -6,7 +6,7 @@ BBFMM3D: Perform fast (linear) multiplication of a kernel matix Q with a vector 
 randSVD: Performs approximate singular value decomposition 
 randSVD with BBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used for fast multiplication of the Q matrix with random vectors within the randSVD code. 
 
-###Overview
+###BBFMM3D: Overview
 The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM3D has linear complexity O(N). The table below shows computation times on a single core CPU when using the BBFMM3D and when using direct multiplication.
 
 |   N      |  Time for BBFMM3D (sec)  |  Time for direct multiplication (sec) |   
@@ -35,7 +35,7 @@ Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journa
 
 
 	./example1.m		:	Example of how to use mexBBFMM3D for isotropic, regular grid
-        ./example2.m		:	Example of how to use mexBBFMM3D for anisotropic, irregular large scale grid 
+	./example2.m		:	Example of how to use mexBBFMM3D for anisotropic, irregular grid
 	./make.m		:	Makefile 
 	./include/		:	Relevant header files  
 	./mexFMM3D.cpp	        :	mex function  
@@ -43,6 +43,8 @@ Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journa
 	./BBFMM3D/		: 	BBFMM3D library
 	./README.md		:	This file  
 	./Troubleshooting.md    :       Instructions for troubleshooting compilation problems
+	./RandSVDBBF3D.m        :       Function for performing randSVD for large covariance matrices using BBFMM
+	./RandSVD.m             :       Function for performing randSVD for small covariance matrices
 	
 ###Quick start guide
 
@@ -89,25 +91,21 @@ Note: For Step 2 you have to operate in the main directory of mexBBFMM3D, which 
 
 ####Step 2: Compile the MEX file to make sure compilation works
 
-__A.__ Open file `compilemex.m` and read instructions.
+__A.__ Open function `compilemex.m` and read instructions.
 
-__B.__ Choose your kernel function type, e.g. `GAUSSIAN` and the correlation length and give your BBFMM3D case a name, e.g. `Test1`
-
-Compile by giving the command: 
+__B.__ Choose input for `compilemex(execname,kerneltype,corlength)`: give your BBFMM3D case a name, e.g. `Test1` and choose your kernel function type, e.g. `GAUSSIAN` and the correlation length. Then compile by giving the command: 
 ```
-compilemex(ExecName,Kernel,corlength)
+compilemex('Test1','GAUSSIAN',10)
 ```
 
-This will compile the source code and generate a MEX-file with the name you provided (e.g. `ExecName.mexmaci64`). The extension (`.mexmaci64`) will depend on your platform.
+This will compile the source code and generate a MEX-file with the name you provided (e.g. `Test1.mexmaci64`). The extension (`.mexmaci64`) will depend on your platform.
 
-NOTE!! Recompile the MEX-file (step 2) when the kernel function is changed.
-
-If compilation is successful, you should see the message `mex compiling is successful!`
+If compilation is successful, you should see the message `mex compiling is successful!`. You can ignore the warnings.
 
 
 ####Step 3a: Run example1.m for a regular grid
 
-__A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH, unless TestingMode=0.
+__A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH, unless `TestingMode=0`.
 
 __B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. The grid must be provided as unique x,y and z locations and (x,y,z) triplets will be created automatically.
 
@@ -185,7 +183,7 @@ Input:
      - `corlength`: correlation length in x and y, isotropic 
      
      - `corlengthz`: correlation length in z 
-
+     
      - `H`        : matrix by which Kernel is multiplied
      
      - `TestingMode`: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. 
@@ -205,6 +203,19 @@ Example usage:
 
 When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. The screen printout is the same as in example1 above. 
 
+
+###RandSVD: Overview
+
+Randomized singular value decomposition is a fast alternative to SVD for large matrices. The randomized SVD algorithm involves the multiplication of the covariance matrix to be decomposed with random vectors. Performing this multiplication directly can be infeasible for large covariance matrices. The function `./RandSVDBBF3D.m` provided here uses BBFMM3D to perform the multiplications required in randSVD. For this reason, it can only be used to perform randSVD for kernels that are comparible with BBFMM3D (see Appendix).  The function `RandSVD.m` performs randomized SVD with direct multiplications, and can be used to decompose any matrix, but is very computationally expensive for large matrices.
+
+###Quick start quide for randSVD with direct multiplication. 
+
+
+###Quick start quide for randSVD with BBFMM3D. 
+
+`[U,S,V] = RandomizedCondSVDFMM(m,N,a,Kernel,Corlength)`
+
+
 ### APPENDIX<a name="ref_app"></a>
 
 __Kernel Options__
@@ -215,7 +226,7 @@ __Kernel Options__
 
 `\sigma^2`: variance parameter
 
-#### Example of kernel type:
+#### Example of kernel types:
 + Gaussian kernel 
 
       ![guasskernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Csigma%5E2%20%5Cexp%28-%5Cdfrac%7Br%5E2%7D%7BL%5E2%7D%29)
@@ -235,13 +246,15 @@ __Kernel Options__
 + Power kernel
 
       ![powerkernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Ctheta%20r%5Es%2C%20%5Ctheta%20%3E0%2C%200%20%3Cs%20%3C2)
+      
+     
         
 
 #### This package uses:
 
 1. [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
-2. [BBFMM2D](https://github.com/sivaramambikasaran/BBFMM2D)
+2. [BBFMM3D]()
 
 #### Reference:<a name="ref"></a>
 1. Sivaram Ambikasaran, Judith Yue Li, Peter K. Kitanidis, Eric Darve, Large-scale stochastic linear inversion using hierarchical matrices, Computational Geosciences, December 2013, Volume 17, Issue 6, pp 913-927 [link](http://link.springer.com/article/10.1007%2Fs10596-013-9364-0)
