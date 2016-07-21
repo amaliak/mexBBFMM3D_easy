@@ -7,7 +7,7 @@ function QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)
 %
 % Example usage: 
 %                grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
-%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1))
+%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
 % -----------
 % Input:
 %     ExecName : the name of the mexfile for the Kernel chosen
@@ -70,8 +70,8 @@ source = zeros(nx*ny*nz,3);
 for i = 1:ny
     for j = 1:nx
         for k = 1:nz
-            source((i-1)*nx*nz + (j-1)*nz + k ,1) = grid.x(i);
-            source((i-1)*nx*nz + (j-1)*nz + k ,2) = grid.y(j);
+            source((i-1)*nx*nz + (j-1)*nz + k ,1) = grid.y(i);
+            source((i-1)*nx*nz + (j-1)*nz + k ,2) = grid.x(j);
             source((i-1)*nx*nz + (j-1)*nz + k ,3) = grid.z(k);
         end
     end

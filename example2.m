@@ -1,4 +1,4 @@
-function QH = example2(ExecName,grid,Kernel,corlength,H,TestingMode)
+function QH = example2(ExecName,grid,Kernel,corlength,corlengthz,H,TestingMode)
 % This is an example file for ufing mexBBFMM3D to compute the product of a
 % covariance kernel Q with matrix H, where Q is defined on an IRREGULAR grid
 % with the option for anisotropy in the z direction
@@ -7,15 +7,16 @@ function QH = example2(ExecName,grid,Kernel,corlength,H,TestingMode)
 % Example usage: 
 %                load('./coord_htr.mat')
 %                grid.x = x_htr; grid.y = y_htr; grid.z = z_htr;
-%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1))
+%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
 % -----------
 %     ExecName : the name of the mexfile for the Kernel chosen
 %     grid     : structure with vectors grid.x, grid.y, grid.z
 %                each vector containing all x,y and z coordinates
 %                respectively
 %     Kernel   : covariance type, e.g. 'GAUSSIAN'
-%     corlength: correlation length, isotropic
-%                anisotropy in z direction supported, see code
+%     corlength: correlation length in x and y , isotropic
+%                anisotropy in z direction supported
+%     corlengthz: correlation length in z 
 %     H        : matrix by which Kernel is multiplied
 %     TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to
 %     determine parameters (nCheb) for desired accuracy. if set to 0, the 
@@ -74,7 +75,7 @@ source = [grid.x, grid.y, grid.z];
 % Anisotropy
 % Scaling the vertical coordinates with the correlation lengths 
 % is equivalent to having anisotropic correlation lengths
-lx = corlength; lz=10;
+lx = corlength; lz=corlengthz;
 grid.z = grid.z * (lx/lz);
 
 % check if H and Q are consistent
