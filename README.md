@@ -84,47 +84,46 @@ Note: For Step 2 you have to operate in the main directory of mexBBFMM3D, which 
 
 __A.__ Open file `compilemex.m` and read instructions.
 
-__B.__ Choose your kernel function type, e.g. `GAUSSIAN` and the correlation length
+__B.__ Choose your kernel function type, e.g. `GAUSSIAN` and the correlation length and give your BBFMM3D case a name, e.g. `Test1`
 
-__C.__ Give your BBFMM3D case a name, e.g. `Test1`
+Compile by giving the command: 
+```
+compilemex(ExecName,Kernel,corlength)
+```
 
-Compile by giving the command: `compilemex(ExecName,Kernel,corlength)` 
-This will compile the source code and generate a MEX-file with your provied name (e.g. `ExecName.mexmaci64`). The extension (`.mexmaci64`) will depend on your platform.
+This will compile the source code and generate a MEX-file with the name you provided (e.g. `ExecName.mexmaci64`). The extension (`.mexmaci64`) will depend on your platform.
 
 NOTE!! Recompile the MEX-file (step 2) when the kernel function is changed.
 
 If compilation is successful, you should see the message `mex compiling is successful!`
 
 
-####Step 3: Run example1.m for regular grid
+####Step 3a: Run example1.m for a regular grid
 
 __A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH
-__B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`
-
-% Example usage: 
-%                grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
-%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
-% -----------
-% Input:
-%     ExecName : the name of the mexfile for the Kernel chosen
-%     grid     : structure with vectors grid.x, grid.y, grid.z
-%                each vector containing x,y and z coordinates
-%                respectively
-%     Kernel   : covariance type, e.g. 'GAUSSIAN'
-%     corlength: correlation length, isotropic
-%                anisotropy in z direction supported, see code
-%     H        : matrix by which Kernel is multiplied
-%     TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to
-%     determine parameters (nCheb) for desired accuracy. if set to 0, the 
-%
-% Output:
-%       ExecName.mexmaci64: executable for mex file for given configuration
-%       QH       : Product of Kernel chosen by matrix H specified in input
-%
-
-When run in TestingMode (TestingMode = 1), the code will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout:
+__B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. The grid must be provided as unique x,y and z locations and (x,y,z) triplets will be created automatically.
 
 
+Input:
+    - ExecName : the name of the mexfile for the Kernel chosen
+    - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing x,y and z coordinates respectively
+    - Kernel   : covariance type, e.g. 'GAUSSIAN'
+    - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+    - H        : matrix by which Kernel is multiplied
+    - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. if set to 0, ...
+
+ Output:
+    - ExecName.mexmaci64: executable for mex file for given configuration
+    - QH       : Product of Kernel chosen by matrix H specified in input
+
+Example usage: 
+```
+	      grid.x = -62:4:62; grid.y = -62:4:62; grid.z = -9:3:9;
+              QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
+```
+When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout:
+
+```
 Starting FMM computation...
 
 Pre-computation time: 1.9583
@@ -135,12 +134,84 @@ Starting direct computation...
 Direct calculation starts from: 0 to 0.
 Exact computing time: 8.2686
 Relative Error: 9.724730e-05
+```
 
 If the Relative Error is deemed low enough, the code can be run with TestingMode=0, in which case the direct multiplication is not performed for comparison. 
 
+Example printout when TestingMode = 0: 
 
 
+####Step 3b: Run example2.m for an irregular  grid with anisotropy
 
+__A.__ Open file `example2.m` and read instructions. The example recompiles the code and then computes QH
+__B.__ Choose input variables for `QH = example2(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. Q is defined on an IRREGULAR grid with the option for anisotropy in the z direction. The grid must be provided as (x,y,z) triplets. 
+
+Input: 
+     - ExecName : the name of the mexfile for the Kernel chosen
+     - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing all x,y and z coordinates respectively
+     - Kernel   : covariance type, e.g. 'GAUSSIAN'
+     - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+     - H        : matrix by which Kernel is multiplied
+     - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. 
+
+ Output:
+       - ExecName.mexmaci64: executable for mex file for given configuration
+       - QH       : Product of Kernel chosen by matrix H specified in input
+
+Example usage: 
+```
+	        load('./coord_htr.mat')
+                grid.x = x_htr; grid.y = y_htr; grid.z = z_htr;
+                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(23910,1),1)
+```
+When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout are similar as in example 1 above. 
+
+### APPENDIX<a name="ref_app"></a>
+
+__Kernel Options__
+
+`r` : distance between two points
+
+`L` : length scale parameter
+
+`\sigma^2`: variance parameter
+
+#### Example of kernel type:
++ Gaussian kernel 
+
+      ![guasskernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Csigma%5E2%20%5Cexp%28-%5Cdfrac%7Br%5E2%7D%7BL%5E2%7D%29)
+
++ Exponential kernel
+
+      ![expkernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Cexp%28-%5Cdfrac%7Br%7D%7BL%7D%29)
+
++ Logrithm kernel
+
+      ![logkernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20A%20%5Clog%28r%29%2C%20A%3E0)
+
++ Linear kernel
+
+      ![linearkernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Ctheta%20r%2C%20%5Ctheta%20%3E0)
+
++ Power kernel
+
+      ![powerkernel](http://latex.codecogs.com/gif.latex?%5Cdpi%7B150%7D%20Q%28r%29%20%3D%20%5Ctheta%20r%5Es%2C%20%5Ctheta%20%3E0%2C%200%20%3Cs%20%3C2)
+        
+
+#### This package uses:
+
+1. [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page)
+
+2. [BBFMM2D](https://github.com/sivaramambikasaran/BBFMM2D)
+
+#### Reference:<a name="ref"></a>
+1. Sivaram Ambikasaran, Judith Yue Li, Peter K. Kitanidis, Eric Darve, Large-scale stochastic linear inversion using hierarchical matrices, Computational Geosciences, December 2013, Volume 17, Issue 6, pp 913-927 [link](http://link.springer.com/article/10.1007%2Fs10596-013-9364-0)
+2. Judith Yue Li, Sivaram Ambikasaran, Eric F. Darve, Peter K. Kitanidis, A Kalman filter powered by H2-matrices for quasi-continuous data assimilation problems [link](https://www.dropbox.com/s/xxjdvixq7py4bhp/HiKF.pdf)
+3. Saibaba, A., S. Ambikasaran, J. Li, P. Kitanidis, and E. Darve (2012), Application of hierarchical matrices to linear inverse problems in geostatistics, OGST Revue d’IFP Energies Nouvelles, 67(5), 857–875, doi:http://dx.doi.org/10.2516/ogst/2012064. [link](http://ogst.ifpenergiesnouvelles.fr/articles/ogst/abs/2012/05/ogst120061/ogst120061.html)
+4. Fong, W., and E. Darve (2009), The black-box fast multipole method, Journal of Computational Physics, 228(23), 8712–8725.[link](http://www.logos.t.u-tokyo.ac.jp/~tau/Darve_bbfmm_2009.pdf)
+
+<script type="text/javascript"
+   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
 
 
