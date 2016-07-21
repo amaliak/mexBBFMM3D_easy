@@ -101,19 +101,26 @@ If compilation is successful, you should see the message `mex compiling is succe
 ####Step 3a: Run example1.m for a regular grid
 
 __A.__ Open file `example1.m` and read instructions. The example recompiles the code and then computes QH
+
 __B.__ Choose input variables for `QH = example1(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. The grid must be provided as unique x,y and z locations and (x,y,z) triplets will be created automatically.
 
 
 Input:
     - ExecName : the name of the mexfile for the Kernel chosen
+    
     - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing x,y and z coordinates respectively
+    
     - Kernel   : covariance type, e.g. 'GAUSSIAN'
+    
     - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+    
     - H        : matrix by which Kernel is multiplied
+    
     - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. if set to 0, ...
 
  Output:
     - ExecName.mexmaci64: executable for mex file for given configuration
+    
     - QH       : Product of Kernel chosen by matrix H specified in input
 
 Example usage: 
@@ -144,26 +151,35 @@ Example printout when TestingMode = 0:
 ####Step 3b: Run example2.m for an irregular  grid with anisotropy
 
 __A.__ Open file `example2.m` and read instructions. The example recompiles the code and then computes QH
+
 __B.__ Choose input variables for `QH = example2(ExecName,grid,Kernel,corlength,H,TestingMode)`. Avoid using a very large grid while in Testing Mode, as the code performs the direct multiplication for comparison and it may take a very long time to be completed. Q is defined on an IRREGULAR grid with the option for anisotropy in the z direction. The grid must be provided as (x,y,z) triplets. 
 
 Input: 
      - ExecName : the name of the mexfile for the Kernel chosen
+     
      - grid     : structure with vectors grid.x, grid.y, grid.z each vector containing all x,y and z coordinates respectively
+     
      - Kernel   : covariance type, e.g. 'GAUSSIAN'
+     
      - corlength: correlation length, isotropic anisotropy in z direction supported, see code
+     
      - H        : matrix by which Kernel is multiplied
+     
      - TestingMode: if set to 1, BBFMM is recompiled and runs in TestingMode in order to determine parameters (nCheb) for desired accuracy. 
 
  Output:
        - ExecName.mexmaci64: executable for mex file for given configuration
+       
        - QH       : Product of Kernel chosen by matrix H specified in input
 
 Example usage: 
+
 ```
 	        load('./coord_htr.mat')
                 grid.x = x_htr; grid.y = y_htr; grid.z = z_htr;
                 QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(23910,1),1)
 ```
+
 When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. Example printout are similar as in example 1 above. 
 
 ### APPENDIX<a name="ref_app"></a>
