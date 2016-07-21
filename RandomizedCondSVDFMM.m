@@ -1,4 +1,4 @@
-function [U,S,V] = RandomizedCondSVDFMM(m,N,a,Kernel,Corlength)
+function [U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N,a)
 tic
 % Parallel code for low-rank decomposition of covariance kernel Q
 % via randomized algorithm
@@ -16,15 +16,18 @@ tic
 % function rnd_eig_fft.m and help from Ruoxi Wang on the use of mexBBFMM3D
 %
 % Example usage:
-%               [U,S,V] = RandomizedCondSVDFMM(24040,3,9,'GAUSSIAN',100);
+%                load('./coord_htr2.mat')
+%                grid.x = x_htr2; grid.y = y_htr2; grid.z = z_htr2;
+%               [U,S,V] = RandomizedCondSVDFMM(grid,'GAUSSIAN',100,10,3,9);
 % Input:
+%        grid = 
 %        m = size of covariance matrix number of unknowns
 %        N = rank of reduced rank svd 
-%        a = oversampling parameter for randSVD
+%        a = oversampling parameter for randSVD, recommended 9
 %        q is 1, or 2 (hardcoded below to = 1)
 %        Kernel Q: covariance type, see compilemex for options
-%        corlength: correlation length in x and y, see option for 
-%        anisotropy in z direction in code
+%        corlength: correlation length in x and y isotropic
+%        corlengthz: correlation length in z
 %        
 % Output: 
 %       U,V N first eigenbases
@@ -39,22 +42,17 @@ tic
 ExecName = 'RandSVDBBF3D';
 compilemex(ExecName,Kernel,Corlength)
 
+Ns  = length(grid.x);    
+Nf  = Ns;          
+% Length of simulation cell (assumed to be a cube)
+L = max(max(max(grid.x) - min(grid.x), max(grid.y)-min(grid.y)),max(grid.z)-min(grid.z));
+source = [grid.x, grid.y, grid.z];
 
-% set up grid and anisotropy and BBFMM parameters
-% 3-D locations, stored column-wise i.e. (x | y | z)
-
-load('./coord_htr2.mat')
-
-x_loc = x_htr2;
-y_loc = y_htr2;
-z_loc = z_htr2;
-
-% option for anisotropy in z direction
-lx = 100 ; lz = 10;
-z_loc = z_loc * (lx/lz);
-
-L = max(max(max(x_loc) - min(x_loc), max(y_loc)-min(y_loc)),max(z_loc)-min(z_loc));
-source = [x_loc, y_loc,z_loc];
+% Anisotropy
+% Scaling the vertical coordinates with the correlation lengths 
+% is equivalent to having anisotropic correlation lengths
+lx = corlength; lz=corlengthz;
+grid.z = grid.z * (lx/lz);
 
 % FMM parameters
 Ns  = length(source);    % Number of sources in simulation cell
