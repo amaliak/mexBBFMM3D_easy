@@ -9,6 +9,8 @@ randSVD with BBFMM3D: Performs approximate singular value decomposition for larg
 ###BBFMM3D: Overview
 The Fast Multipole Method (FMM) is an algorithm that performs fast multiplication of an N x N dense matrix Q(x,y) where N is the number of unknown values at points (x,y) in a 2D domain, with a matrix H of size N x m (N>>m). The direct multiplication approach has complexity O(N^2), while the BBFMM3D has linear complexity O(N). The table below shows computation times on a single core CPU when using the BBFMM3D and when using direct multiplication.
 
+The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplication. The approximation error can be controlled by the number of Chebyshev nodes used, which can be adjusted to achieve the desired accuracy. mexBBFMM3D provides a Matlab interface for the BBFMM3D package, which is written in C++. Note that the C++ code is faster than the Matlab interface. 
+
 |   N      |  Time for BBFMM3D (sec)  |  Time for direct multiplication (sec) |   
 | -------: |:------------------------:|:-------------------------------------:| 
 | 12,500   |                       4.3|  22.8                                 |
@@ -16,7 +18,7 @@ The Fast Multipole Method (FMM) is an algorithm that performs fast multiplicatio
 | 100,000  |                       9.6|  1505.3                               |
 
 
-The BBFMM3D algorithm uses Chebyshev interpolation to approximate the multiplication. The approximation error can be controlled by the number of Chebyshev nodes used, which can be adjusted to achieve the desired accuracy. mexBBFMM3D provides a Matlab interface for the BBFMM3D package, which is written in C++. Note that the C++ code is faster than the Matlab interface. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
+The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
 
 
 ###Disclaimer
