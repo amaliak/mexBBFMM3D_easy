@@ -22,11 +22,11 @@ The table below shows computation times on a single core CPU when using the mexB
 
 ###Disclaimer
 
-This is a quick-start guide with instructions on how to set up and use mexBBFMM3D in MATLAB, with two example m-file that can be used to perform matrix-vector and matrix-matrix multiplication for regular and irregular grids. A reasonably good knowledge of MATLAB is assumed and minimal understanding of the FMM theory is needed.  
+This is a quick-start guide with instructions on how to set up and use mexBBFMM3D in MATLAB, with two example m-file that can be used to perform matrix-vector and matrix-matrix multiplication for regular and irregular grids, and with examples for running randomized SVD with and without BBFMM. A reasonably good knowledge of MATLAB is assumed and minimal understanding of the FMM and randomized SVD theory is needed.  
 
-For a more involved description of the code and the method please see [here](https://github.com/ruoxi-wang/BBFMM3D), and for a full description of the algorithm see [Fong and Darve 2006] in section [__Reference__](#ref). The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
+ For a full description of the FMM algorithm see [Fong and Darve 2009] in section [__Reference__](#ref), and for the C++ code, see  [here](https://github.com/ruoxi-wang/BBFMM3D), and. The corresponding code for 2D cases can be found [here](https://github.com/judithyueli/mexBBFMM2D).
 
-In this guide, we will use the example of the multiplication of a Gaussian covariance matrix Q (termed as Gaussian kernel) with a matrix H. The method can also be applied for other smooth kernels (see section [__Appendix__](#ref_app)).
+In this guide, we will demonstrate BBFMM3D with an example of multiplication of a Gaussian covariance matrix Q (termed as Gaussian kernel) with a matrix H, and we will then apply randSVD of the Gaussian kernel for a small and large case, with and without BBFMM3D respectively.  The methods given here can also be applied for other smooth kernels (see section [__Appendix__](#ref_app)).
 
 Please cite the following paper if you use this code:
 
