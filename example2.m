@@ -7,7 +7,7 @@ function QH = example2(ExecName,grid,Kernel,corlength,corlengthz,H,TestingMode)
 % Example usage: 
 %                load('./coord_htr.mat')
 %                grid.x = x_htr; grid.y = y_htr; grid.z = z_htr;
-%                QH = example1('TESTNAME',grid,'GAUSSIAN',50,ones(7168,1),1)
+%                QH = example2('TESTNAME',grid,'GAUSSIAN',50,10,ones(23910,1),1)
 % -----------
 %     ExecName : the name of the mexfile for the Kernel chosen
 %     grid     : structure with vectors grid.x, grid.y, grid.z

@@ -5,9 +5,9 @@ function [Xr,Yr,Zr,Cr]=vec2mat(xt,yt,zt,ct)
 
 %% new code for irregular grid
  % objective is to have a regular grid for plotting
- xr = [257:2:382];
- yr = [257:2:382];
- zr = [1019:-2:1001];
+ xr = [min(xt):2:max(xt)];
+ yr = [min(yt):2:max(yt)];
+ zr = [min(zt):2:max(zt)];
  [Xr,Yr,Zr] = meshgrid(xr,yr,zr);
  
  Cr = zeros(size(Xr));

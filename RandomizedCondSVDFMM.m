@@ -20,10 +20,12 @@ tic
 %                grid.x = x_htr2; grid.y = y_htr2; grid.z = z_htr2;
 %               [U,S,V] = RandomizedCondSVDFMM(grid,'GAUSSIAN',100,10,3,9);
 % Input:
-%        grid = 
-%        m = size of covariance matrix number of unknowns
-%        N = rank of reduced rank svd 
-%        a = oversampling parameter for randSVD, recommended 9
+%        grid     : structure with vectors grid.x, grid.y, grid.z
+%                each vector containing all x,y and z coordinates
+%                respectively
+%        m : size of covariance matrix number of unknowns
+%        N : rank of reduced rank svd 
+%        a : oversampling parameter for randSVD
 %        q is 1, or 2 (hardcoded below to = 1)
 %        Kernel Q: covariance type, see compilemex for options
 %        corlength: correlation length in x and y isotropic
@@ -42,20 +44,20 @@ tic
 ExecName = 'RandSVDBBF3D';
 compilemex(ExecName,Kernel,Corlength)
 
-Ns  = length(grid.x);    
-Nf  = Ns;          
-% Length of simulation cell (assumed to be a cube)
-L = max(max(max(grid.x) - min(grid.x), max(grid.y)-min(grid.y)),max(grid.z)-min(grid.z));
-source = [grid.x, grid.y, grid.z];
+m  = length(grid.x);
 
 % Anisotropy
 % Scaling the vertical coordinates with the correlation lengths 
 % is equivalent to having anisotropic correlation lengths
-lx = corlength; lz=corlengthz;
-grid.z = grid.z * (lx/lz);
+lx = Corlength; lz=Corlengthz;
+grid.z_an = grid.z * (lx/lz);
+
+% Length of simulation cell (assumed to be a cube)
+L = max(max(max(grid.x) - min(grid.x), max(grid.y)-min(grid.y)),max(grid.z_an)-min(grid.z_an));
+source = [grid.x, grid.y, grid.z_an];
 
 % FMM parameters
-Ns  = length(source);    % Number of sources in simulation cell
+Ns  = m;            % Number of sources in simulation cell
 nCheb = 4;          % Number of Chebyshev nodes per dimension
 level = ceil(log10(Ns));
 use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
@@ -66,7 +68,7 @@ use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
 disp('Running test for accuracy')
 disp('Also creating the Pre-computation files')
 TestingMode = 1;
-testOmega=randn(m,1);
+testOmega=randn(Ns,1);
 runmexBBFMM3D(source,testOmega(:,1),nCheb,L,level,ExecName,use_chebyshev,TestingMode);
 
 check = 1;%input('Is accuracy good enough?');
@@ -216,11 +218,17 @@ if ~isempty(p)
     delete(gcp)
 end
 
-plotU(U(:,1),1005)
-figure
-plotU(U(:,2),1005)
-figure
-plotU(U(:,3),1005)
 
 toc
+plotflag=false;
+if plotflag
+%Ploting the first three bases
+figure; plotU(grid,U(:,1),1005)
+title('Basis 1')
+figure; plotU(grid,U(:,2),1005)
+title('Basis 2')
+figure; plotU(grid,U(:,3),1005)
+title('Basis 3')
+
+end
 end
