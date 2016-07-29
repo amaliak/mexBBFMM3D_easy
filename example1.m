@@ -63,25 +63,20 @@ use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
 
 nx = length(grid.x); ny = length(grid.y); nz=length(grid.z);
 Ns  = nx*ny*nz;    % Number of sources in simulation cell
-Nf  = Ns;          % Number of fields in simulation cell
+
 % Length of simulation cell (assumed to be a cube)
 L = max(max(max(grid.x) - min(grid.x), max(grid.y)-min(grid.y)),max(grid.z)-min(grid.z));
-source = zeros(nx*ny*nz,3);
-for i = 1:ny
-    for j = 1:nx
-        for k = 1:nz
-            source((i-1)*nx*nz + (j-1)*nz + k ,1) = grid.y(i);
-            source((i-1)*nx*nz + (j-1)*nz + k ,2) = grid.x(j);
-            source((i-1)*nx*nz + (j-1)*nz + k ,3) = grid.z(k);
-        end
-    end
-end
+
+gridmesh = CreateRegMesh(grid);
+source = [gridmesh.x, gridmesh.y, gridmesh.z];
 
 % check if H and Q are consistent
 if abs((Ns-size(H,1)))>0
     disp('Dimension of H does not agree with Kernel dimenstion')
     keyboard
 end
+
+
 
 % run mexBBFMM2D
 

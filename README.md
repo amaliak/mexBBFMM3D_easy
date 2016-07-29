@@ -30,19 +30,25 @@ If you use this code, please cite the following <a href="http://www.sciencedirec
 ###2. DIRECTORIES AND FILES
 
 
-	./example1.m		:	Example of how to use mexBBFMM3D for isotropic, regular grid
-	./example2.m		:	Example of how to use mexBBFMM3D for anisotropic, irregular grid
-	./make.m		:	Makefile 
-	./include/		:	Relevant header files  
-	./mexFMM3D.cpp	        :	mex function  
-	./eigen/		:	Eigen Library  
-	./BBFMM3D/		: 	BBFMM3D library
-	./README.md		:	This file  
-	./Troubleshooting.md    :       Instructions for troubleshooting compilation problems
-	./RandSVDBBF3D.m        :       Function for performing randSVD for large covariance matrices using BBFMM
-	./RandSVD.m             :       Function for performing randSVD for small covariance matrices
-	./cov_reg.m             : Function for creating a covariance matrix on a regular grid
-	./cov_irg.m             : Function for creating a covariance matrix on an irregular grid
+	./example1.m		:	Example of how to use mexBBFMM3D for isotropic, 
+							regular grid
+	./example2.m		:	Example of how to use mexBBFMM3D for anisotropic, 
+							irregular grid 
+	./make.m		    :	Makefile 
+	./include/	    	:	Relevant header files  
+	./mexFMM3D.cpp	    :	mex function  
+	./eigen/	    	:	Eigen Library  
+	./BBFMM3D/   		: 	BBFMM3D library
+	./README.md	    	:	This file  
+	./Troubleshooting.md:   Instructions for troubleshooting compilation problems
+	./RandSVDBBF3D.m    :   Function for performing randSVD for large 
+							covariance matrices using BBFMM
+	./RandSVD.m         :   Function for performing randSVD for small 
+							covariance matrices
+	./cov_reg.m         :   Function to create covariance matrix on a regular grid
+	./cov_irg.m         :   Function to create covariance matrix for irregular grid
+	./plotU.m			:   Function to plot U columns obtained from SVD in 3D
+
 
 ## BBFMM3D
 
@@ -97,14 +103,14 @@ Size of  array in kilobytes: 24414
 
 If you do not get this output, take a note of the error you get and refer to file __Trouble Shooting.md__ of this package.
 
-####Step 3:  Download the [code](https://github.com/amaliak/randSVD-with-BBFMM3D)
+####Step 3:  Download the code from [here](https://github.com/amaliak/randSVD-with-BBFMM3D)
 
 A folder called `randSVD-with-BBFMM3D-master` will be downloaded when you click on the above link. Copy the folder `randSVD-with-BBFMM3D-master` to your specific working directory. In MATLAB, set the current folder to be the directory where the code is. You will see the folders
 `BBFMM3D\` and `Eigen\`, as well as an m-file called (`compilemex.m`) and two example m-files (`example1.m` and `example2.m`) that we will use in this quick start quide. These m-files will be used to compile, set-up, test and use `BBFMM3D` to multiply matrices. You only need to change the input to the example functions. No modifications will be needed to other m-files or the contents of the folder `BBFMM3D` which includes the c++ source code. 
 
 
 
-####Step 2: Compile the MEX file to make sure compilation works
+####Step 4: Compile the MEX file to make sure compilation works
 
 __A.__ Open function `compilemex.m` and read the function description, or type `help compilemex`.
 
@@ -123,7 +129,7 @@ If compilation is successful, you should see the message:
  You can ignore the warnings. If compilation is not successfull, note the error message and refer to file __Trouble Shooting.md__ of this package.
 
 
-####Step 3: Run the examples
+####Step 5: Run the examples
 
 There are two autonomous examples provided, example1.m for a regular grid, and example2.m for an irregular grid. *The user does not need to change the code.* 
 
@@ -137,7 +143,7 @@ If you intend to embed the code to your software:
 * For the compilation, you have to operate in the main directory of mexBBFMM3D, which contains `make.m`. For use after compilation,  you can call the generated MEX-files (e.g., `ExecName.mexmaci64`) by moving them to your own working directory, or add the main directory of mexBBFMM3D to the path. 
 
 
-####Step 3a: Run example1.m for a regular grid
+#####Example1.m for a regular grid
 
 Function `example1()` uses the mexBBFMM3D code to perform the multiplication of a 3D covariance matrix `Q` defined on a regular grid, with a matrix `H`. The function first compiles the code, and then uses the executable to perform the multiplication. 
 
@@ -204,7 +210,7 @@ Pre-computation time: 0.0604
 FMM computing time: 3.9679
 FMM total time: 4.0283
 ```
-####Step 3b: Run example2.m for an irregular grid with anisotropy
+#####Example2.m for an irregular grid with vertical anisotropy
 
 Function `example2()` uses the mexBBFMM3D code to perform the multiplication of a 3D covariance matrix `Q` defined on an irregular grid, with a matrix `H`. The function first compiles the code, and then uses the executable to perform the multiplication. An example irregular grid is provided. 
 
@@ -247,19 +253,98 @@ QH = example1('TESTNAME',grid,'GAUSSIAN',50,10,ones(23910,1),1)
 When run in TestingMode (TestingMode = 1), the output will give a relative error that compares the accuracy of BBFMM3D with the direct multiplication of Q*H. The screen printout is the same as in example1 above. 
 
 
-###RandSVD: Overview
+##Randomized SVD
 
-Randomized singular value decomposition is a fast alternative to SVD for large matrices. The randomized SVD algorithm involves the multiplication of the covariance matrix to be decomposed with random vectors. Performing this multiplication directly can be infeasible for large covariance matrices. The function `./RandSVDBBF3D.m` provided here uses BBFMM3D to perform the multiplications required in randSVD. For this reason, it can only be used to perform randSVD for kernels that are comparible with BBFMM3D (see Appendix).  The function `RandSVD.m` performs randomized SVD with direct multiplications, and can be used to decompose any matrix, but is very computationally expensive for large matrices.
+###Overview
 
-###Quick start quide for randSVD with direct multiplication. 
+[Randomized singular value decomposition](http://arxiv.org/abs/0909.4061) is a fast truncated alternative to SVD for large matrices. It is ideally suited for decomposing covariances with fast decaying spectra, or when we are only interested in the first N principal directions of a covariance. The function `RandomizedCondSVD.m` performs the basic randomized SVD, and can be used to decompose any matrix, but is expensive for large matrices (>10000 elements). 
 
-
-###Quick start quide for randSVD with BBFMM3D. 
-
-`[U,S,V] = RandomizedCondSVDFMM(m,N,a,Kernel,Corlength)`
+Because the randomized SVD algorithm involves the multiplication of the covariance matrix with random vectors, the BBFMM method can be used to accelerate the decomposition. The function `./RandomizedCondSVDFMM.m` provided here uses BBFMM3D to perform the multiplications required in randSVD. For this reason, it can only be used to perform randSVD for kernels that are comparible with BBFMM3D (see Appendix), but is much faster than the basic implementation of randSVD used in `RandomizedCondSVD.m`.
 
 
-### APPENDIX<a name="ref_app"></a>
+###Basic randSVD  
+
+Function structure: `[UN,SN,VN] = RandomizedCondSVD(A,N,q,TestingMode,CompareMode)`
+
+Input:
+
+```
+      A:           Covariance matrix. Can be created by cov_reg.m or cov_irg.m
+      N:           Number of components of SVD needed, rank of reduced
+                   rank svd
+      q:           default is 1, or 2 (try 1)
+      Testingmode: if 1, the error compared to full svd will be
+                   calculated. Caution, do not use for very large matrices as it will
+                   take a very long time to perform the full svd
+      CompareMode: if 1, the times for different methods will be compared
+                   to evaluate efficiency: randomized Svd, full svd, matlab's svd(Q,0)
+                   and matlab's svd(Q,'econ')
+```
+
+Example usage: 
+
+```
+grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
+Q,~]=cov_reg(grid,'GAUSSIAN',6,6,6,[]); imagesc(Q);
+[UN,SN,VN] = RandomizedCondSVD(Q,10,1,1);
+```
+
+Performance comparison:
+
+|   m/N   |  Time for randSVD (sec)  |  Time for SVD (sec)  | Speedup  |
+| -------: |:------------------------:|:-------------------:| :-------:|
+| 100/10   |                    0.0018|           0.0037    |   x2.05  |                
+| 200/20   |                    0.0046|           0.0105    |   x2.28  |                
+| 1000/100 |                    0.1192|           0.3954    |   x3.31  |                
+| 2000/200 |                    0.6006|           3.4994    |   x5.82  |                
+| 4000/400 |                    4.5236|           28.403    |   x6.28  | 
+| 8000/800 |                    34.697|           249.02    |   x7.17  |                
+
+### randSVD with mexBBFMM3D. 
+
+This is the same algorithm as in `RandomizedCondSVD.m`, with all matrix-matrix multiplications performed with mexBBFMM3D and in parallel if there are more than one cores available. The code looks for available processors and splits multiplications in smaller parts to improve efficiency. For a small number of processors the paralellization overhead may reduce efficiency.
+
+This function is presented as an application in which mexBBFMM3D can be used as a black-box algorithm. There are more efficient algorithms to perform fast randomized SVD. 	
+
+Function structure: `[U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N,a)`
+
+Input:
+
+```
+grid  : structure with vectors grid.x, grid.y, grid.z
+        each vector containing all x,y and z coordinates
+        respectively
+m     : size of covariance matrix number of unknowns
+N     : rank of reduced rank svd 
+a     : oversampling parameter for randSVD
+q     : is 1, or 2 (hardcoded below to = 1)
+Kernel: covariance type, see compilemex for options
+corlength: correlation length in x and y isotropic
+corlengthz: correlation length in z
+    
+```
+
+Example usage: 
+
+```
+grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
+gridmesh = CreateRegMesh(grid);
+[U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3,9);
+```
+
+Performance comparison (In progress):
+
+|   m/N   |  Time for randSVD with BBFMM (sec)  |  Time for basic randSVD (sec)  | Speedup  |
+| -------: |:------------------------:|:-------------------:| :---------------:|
+| 8000/100 |      146.034             |               34.697|                  |   
+|10000/100 |      184.368             |       (1000)  62.071|                  |
+|20000/100 |      1207 ***            |      (2000) 1001.9**|                  |   
+
+** Note: rsvd() developed by Antoine Liutkus  (c) Inria 2014   does the same thing in 207 seconds. Investigate.
+*** Used this before for 24040 with N=30 and less, and utilizing 24 processors so the benefit is more significant.               
+                 
+
+## APPENDIX<a name="ref_app"></a>
 
 __Kernel Options__
 

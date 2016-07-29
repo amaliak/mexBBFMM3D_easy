@@ -10,9 +10,9 @@ public:
        kernelType = "myKernel";}
        virtual void EvaluateKernel(vector3 fieldpos, vector3 sourcepos,
                                double *K, doft *dof) {
-    double lx = 1.000000;
-    double ly = 1.000000;
-    double lz = 1.000000;
+    double lx = 10.000000;
+    double ly = 10.000000;
+    double lz = 10.000000;
     double rx = (sourcepos.x - fieldpos.x)*(sourcepos.x - fieldpos.x)*(1.0/lx)*(1.0/lx);
     double ry = (sourcepos.y - fieldpos.y)*(sourcepos.y - fieldpos.y)*(1.0/ly)*(1.0/ly);
     double rz = (sourcepos.z - fieldpos.z)*(sourcepos.z - fieldpos.z)*(1.0/lz)*(1.0/lz);
