@@ -312,9 +312,9 @@ Input:
 
 ```
 grid  : structure with vectors grid.x, grid.y, grid.z
-        each vector containing all x,y and z coordinates
-        respectively
-m     : size of covariance matrix number of unknowns
+        each vector containing all (x,y,z) triplets 
+        The meshed grid can be created from x,y and z vectors by using function
+        gridmesh = CreateRegMesh(grid);
 N     : rank of reduced rank svd 
 a     : oversampling parameter for randSVD
 q     : is 1, or 2 (hardcoded below to = 1)

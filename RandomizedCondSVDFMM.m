@@ -16,14 +16,14 @@ tic
 % function rnd_eig_fft.m and help from Ruoxi Wang on the use of mexBBFMM3D
 %
 % Example usage:
-%                load('./coord_htr2.mat')
-%                grid.x = x_htr2; grid.y = y_htr2; grid.z = z_htr2;
-%               [U,S,V] = RandomizedCondSVDFMM(grid,'GAUSSIAN',100,10,3,9);
+%                grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
+%                gridmesh = CreateRegMesh(grid);
+%                [U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3,9);
 % Input:
 %        grid     : structure with vectors grid.x, grid.y, grid.z
-%                each vector containing all x,y and z coordinates
-%                respectively
-%        m : size of covariance matrix number of unknowns
+%                each vector containing all (x,y,z) triplets 
+%               The meshed grid can be created from x,y and z vectors by using 
+%          function gridmesh = CreateRegMesh(grid);
 %        N : rank of reduced rank svd 
 %        a : oversampling parameter for randSVD
 %        q is 1, or 2 (hardcoded below to = 1)
