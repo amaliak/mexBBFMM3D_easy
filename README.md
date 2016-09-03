@@ -273,9 +273,9 @@ Here, we provide two versions of randomized SVD: The basic implementation that p
 ![](Scaling_rSVD.png)-->
 ###Basic randSVD  
 
-The basic randSVD algorithm performs randomized singular value decomposition as described by [Halko et al., 2011](http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf). The algorithm involves four instances where an `nxn` matrix is multiplied by an `nxN` thin matrix. 
+The basic randSVD algorithm provided here performs randomized singular value decomposition as described by [Halko et al., 2011](http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf). The implementation of the algorithm involves four instances where an `nxn` matrix is multiplied by an `nxN` thin matrix. 
 
-Function structure: `[UN,SN,VN] = RandomizedCondSVD(Q,N,q,TestingMode,CompareMode)`
+Function structure: `[UN,SN,VN] = RandomizedCondSVD(Q,N,TestingMode,CompareMode)`
 
 Input:
 
@@ -295,7 +295,7 @@ Example usage:
 
 ```
 grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
-Q,~]=cov_reg(grid,'GAUSSIAN',6,6,6,[]); imagesc(Q);
+[Q,~]=cov_reg(grid,'GAUSSIAN',6,6,6,[]); imagesc(Q); %creates the Q matrix
 [UN,SN,VN] = RandomizedCondSVD(Q,10,1,1);
 ```
 
@@ -336,7 +336,7 @@ Example usage:
 ```
 grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
 gridmesh = CreateRegMesh(grid);
-[U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3,9);
+[U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3);
 ```
 
 Performance comparison:
