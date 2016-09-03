@@ -1,4 +1,4 @@
-function [UN,SN,VN,Size,TimeElapsed,TestError] = RandomizedCondSVD(Q,N,TestingMode,CompareMode)
+function [UN,SN,VN] = RandomizedCondSVD(Q,N,TestingMode,CompareMode)
 % Function that performs truncated SVD by a randomized algorithm
 % based on Halko et al., 2009
 % Example usage:

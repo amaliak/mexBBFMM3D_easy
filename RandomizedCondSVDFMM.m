@@ -20,7 +20,7 @@ tic
 % Example usage:
 %                grid.x = -12:6:12; grid.y = -12:6:12; grid.z = -6:3:6;
 %                gridmesh = CreateRegMesh(grid);
-%                [U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3,9);
+%                [U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3);
 % Input:
 %        grid     : structure with vectors grid.x, grid.y, grid.z
 %                each vector containing all (x,y,z) triplets 
@@ -67,7 +67,7 @@ use_chebyshev = 1;  % 1: chebyshev interpolation; 0: uniform interpolation
 
 disp('Running test for accuracy')
 disp('Also creating the Pre-computation files')
-TestingMode = 1;
+TestingMode = 0;
 testOmega=randn(Ns,1);
 runmexBBFMM3D(source,testOmega(:,1),nCheb,L,level,ExecName,use_chebyshev,TestingMode);
 

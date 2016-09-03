@@ -347,9 +347,20 @@ Performance comparison:
 |10000/100 |                   |       |                  |
 |20000/100 |                  |      |   
 
-Relative Difference in calculated singular values:               
+Calculated singular values and first eigenbases with and without FMM for small example (n=1183, N=100):
 
-![]()              
+![](./FMM_Validation_S.png)
+  
+
+![](./FMM_Validation_U1.png)
+
+Example figures for large domain with 26,047 elements.
+grid.x = -60:2:60; grid.y = -60:2:60; grid.z = -9:3:9; 
+Gaussian Kernel, correlation length = 100 in x,y, correlation length = 10 in z            
+
+![](./Example_S.png)
+
+![](./Example_GaussianBasis_1.png)              
                  
 
 ## APPENDIX<a name="ref_app"></a>
