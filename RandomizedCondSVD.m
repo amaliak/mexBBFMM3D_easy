@@ -1,4 +1,4 @@
-function [UN,SN,VN] = RandomizedCondSVD(A,N,q,TestingMode,CompareMode)
+function [UN,SN,VN,Size,TimeElapsed,TestError] = RandomizedCondSVD(Q,N,TestingMode,CompareMode)
 % Function that performs truncated SVD by a randomized algorithm
 % based on Halko et al., 2009
 % Example usage:
@@ -23,34 +23,45 @@ function [UN,SN,VN] = RandomizedCondSVD(A,N,q,TestingMode,CompareMode)
 %           The singular values are nonnegative real numbers listed in decreasing order.
 %       VN: First N right singular vectors, returned as the columns of a
 %           matrix
+datestr(now) 
+tStart = tic;
+[m,n] = size(Q);
 
-tic
-[m,n] = size(A);
 if N>m || N>n
     warning('N set to minimum of n and m')
     N = min(n,m);
 end
 
-Omega = randn(n,N+10);
-Y = (A*A')^q*A*Omega;
-[Q,~,~] =svd(Y,0);
 
-B = Q'*A;
+P = min(2*N,n);
+Omega = randn(n,P);
 
+%Y = (A*A')^q*A*Omega;
+Y = Q * Omega;
+Y = Q' * Y;
+Y = Q * Y;
+
+[QQ,~,~] =svd(Y,0);
+B = QQ'*Q;
 [V,S,Ut] = svd(B',0);
-U = Q*Ut;
+U = QQ*Ut;
 UN = U(:,1:N); SN = S(1:N,1:N); VN = V(:,1:N);
 
+datestr(now) 
+TimeElapsed = toc(tStart);   
+Size=n;
+
 disp('For randomized svd ->')
-toc
+disp(TimeElapsed)
 
 if TestingMode
-    TestError = norm(UN*SN*VN'-A)/norm(A);
+    TestError = norm(UN*SN*VN'-Q)/norm(Q);
     disp('The error is:')
     disp([num2str(100*TestError),' %'])
 end
 
 SN=diag(SN);
+
 
 % to compare times
 if CompareMode
@@ -59,15 +70,6 @@ if CompareMode
     svd(A);
     disp('For full svd ->')
     toc
-
-%     tic
-%     svd(A,0);
-%     disp('For Matlab truncated svd->')
-%     toc
-% 
-%     tic
-%     svd(A,'econ');
-%     disp('For Matlab truncated svd->')
-%     toc
-    
 end
+
+

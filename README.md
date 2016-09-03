@@ -5,17 +5,19 @@
 
 ## Summary 
 
-This package includes instructions and set-up information for using mexBBFMM3D, a method for **fast matrix matrix multiplication**. The package is intended for, but not limited to, use within inversion codes that require multiplication of large covariance matrices with other vectors or matrices. Examples are provided. Also, we include an application of the package to performing matrix decomposition using randomized SVD. Comparison files are provided for showcasing the efficiency of the provided algorithm. 
+This package includes instructions and set-up information for using mexBBFMM3D, a method for **fast matrix-matrix multiplication**. The package is intended for, but not limited to, use within inversion codes that require multiplication of large covariance matrices with other vectors or matrices. Examples are provided. Also, we include an application of the package to performing matrix decomposition using randomized SVD. Comparison files are provided for showcasing the efficiency of the provided algorithm. 
 
+Other important applications of the BBFMM3D package include multiplication of more generic matrices A with vector x, where A is given by a kernel of the form  `A_ij = K(r_i - r_j)`
+where `(r_i,r_j)` are given points in 3D, as well as for calculation of the square root of a matrix: `A = B^2`, for A symmetric positive definite. For more information on more advanced applications see   [here](https://github.com/ruoxi-wang/BBFMM3D).
 
 ###Functions and nomenclature
-1. BBFMM3D: Perform fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
+1. BBFMM3D: C++ code for performing fast (linear) multiplication of a kernel matix Q with a vector or matrix: P = QH
 
 2. mexBBFMM3D: Matlab interface for BBFMM3D. 
 
-3. randSVD: Performs approximate singular value decomposition of covariance matrix to obtain the first N eigenvectors and eigenvalues
+3. randSVD: Code to perform approximate singular value decomposition of covariance matrix to obtain the first N eigenvectors and eigenvalues. The method includes matrix-matrix multiplications. In the standrard version, these multiplications are performed with straight matrix-matrix multiplication.
 
-4. randSVD with mexBBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used for fast multiplication of the Q matrix with random vectors within the randSVD code. 
+4. randSVD with mexBBFMM3D: Performs approximate singular value decomposition for large covariance kernels Q. BBFMM3D is used to accelerate matrix-matrix multiplications of the Q matrix with random vectors within the randSVD code. 
 
 ###Disclaimer
 
@@ -25,7 +27,7 @@ This is a quick-start guide with instructions on how to set up and use mexBBFMM3
 
 In this guide, we will demonstrate BBFMM3D with an example of multiplication of a Gaussian covariance matrix Q (termed as Gaussian kernel) with a matrix H, and we will then apply randSVD of the Gaussian kernel for a small and large case, with and without BBFMM3D respectively.  The methods given here can also be applied for other smooth kernels (see section [__Appendix__](#ref_app)).
 
-If you use this code, please cite the following <a href="http://www.sciencedirect.com/science/article/pii/S0021999109004665">paper</a> : Fong, William, and Eric Darve. "The black-box fast multipole methodshod." Journal of Computational Physics 228, no. 23 (2009): 8712-8725. 
+If you use this code, please cite the following <a href="http://www.sciencedirect.com/science/article/pii/S0021999109004665">paper</a> : Fong, William, and Eric Darve. "The black-box fast multipole method." Journal of Computational Physics 228, no. 23 (2009): 8712-8725. 
 
 ###2. DIRECTORIES AND FILES
 
@@ -257,22 +259,30 @@ When run in TestingMode (TestingMode = 1), the output will give a relative error
 
 ###Overview
 
-[Randomized singular value decomposition](http://arxiv.org/abs/0909.4061) is a fast truncated alternative to SVD for large matrices. It is ideally suited for decomposing covariances with fast decaying spectra, or when we are only interested in the first N principal directions of a covariance. The function `RandomizedCondSVD.m` performs the basic randomized SVD, and can be used to decompose any matrix, but is expensive for large matrices (>10000 elements). 
+This overview provides a short description of how the BBFMM code can be used to improved the performance of the randomized SVD algorithm  by [Halko et al., 2011](http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf).
 
-Because the randomized SVD algorithm involves the multiplication of the covariance matrix with random vectors, the BBFMM method can be used to accelerate the decomposition. The function `./RandomizedCondSVDFMM.m` provided here uses BBFMM3D to perform the multiplications required in randSVD. For this reason, it can only be used to perform randSVD for kernels that are comparible with BBFMM3D (see Appendix), but is much faster than the basic implementation of randSVD used in `RandomizedCondSVD.m`.
+[Randomized singular value decomposition](http://arxiv.org/abs/0909.4061) is a fast truncated alternative to SVD for large matrices. It is ideally suited for decomposing covariances with fast decaying spectra, or when we are only interested in the first N principal directions of a covariance, i.e. only the large scale features of the variability. The function `RandomizedCondSVD.m` implements the full randomized SVD algorithm by [Halko et al., 2011](http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf). The rSVD algorithm can be used to decompose any matrix. The fastest the spectrum of the matrix decays, the fewer number of principal directions are required, and the fastest the algorithm. However, even for fast decaying spectra, the algorithm is expensive for large matrices (>10000 elements). 
+
+The computational bottleneck of the naive implementation of randSVD is in the successive multiplications that need to be performed between the large square covariance matrix `Q` and a comparatively thin matrix of random vectors `x`. These multiplications can be accelerated using the BBFMM method. 
+
+Here, we provide two versions of randomized SVD: The basic implementation that performs the multiplications sequentially (`RandomizedCondSVD.m`), and the fast implementation that uses BBFMM3D to accelerate matrix-vector multiplications (`./RandomizedCondSVDFMM.m`). The only difference between the two functions is the utilization of the BBFMM3D code for the multiplication. In the following we will be using randSVD to decompose covariance kernels, which are compatible with BBFMM3D (see Appendix).
 
 
+<!--Note that the randomized SVD algorithm provided here is similar but more accurate for the same rank than this [one](https://www.mathworks.com/matlabcentral/fileexchange/47835-randomized-singular-value-decomposition), which involves fewer of the computationally expensive multiplications. The higher accuracy of the code given here comes at the price of more multiplications and a higher computational cost. However, by reducing the cost of each of these multiplications, the total cost is kept low and high accuracy is achieved. Specifically, by using BBFMM to perform the multiplications, we avoid the quadratic `O(N*N)` scaling of the naive algorithm shown in the figure below: 
+
+![](Scaling_rSVD.png)-->
 ###Basic randSVD  
 
-Function structure: `[UN,SN,VN] = RandomizedCondSVD(A,N,q,TestingMode,CompareMode)`
+The basic randSVD algorithm performs randomized singular value decomposition as described by [Halko et al., 2011](http://users.cms.caltech.edu/~jtropp/papers/HMT11-Finding-Structure-SIREV.pdf). The algorithm involves four instances where an `nxn` matrix is multiplied by an `nxN` thin matrix. 
+
+Function structure: `[UN,SN,VN] = RandomizedCondSVD(Q,N,q,TestingMode,CompareMode)`
 
 Input:
 
 ```
-      A:           Covariance matrix. Can be created by cov_reg.m or cov_irg.m
+      Q:           Covariance matrix of size `nxn`. Can be created by cov_reg.m or cov_irg.m
       N:           Number of components of SVD needed, rank of reduced
                    rank svd
-      q:           default is 1, or 2 (try 1)
       Testingmode: if 1, the error compared to full svd will be
                    calculated. Caution, do not use for very large matrices as it will
                    take a very long time to perform the full svd
@@ -298,15 +308,14 @@ Performance comparison:
 | 1000/100 |                    0.1192|           0.3954    |   x3.31  |                
 | 2000/200 |                    0.6006|           3.4994    |   x5.82  |                
 | 4000/400 |                    4.5236|           28.403    |   x6.28  | 
-| 8000/800 |                    34.697|           249.02    |   x7.17  |                
+| 8000/800 |                    34.697|           249.02    |   x7.17  |              
+ 
 
 ### randSVD with mexBBFMM3D. 
 
-This is the same algorithm as in `RandomizedCondSVD.m`, with all matrix-matrix multiplications performed with mexBBFMM3D and in parallel if there are more than one cores available. The code looks for available processors and splits multiplications in smaller parts to improve efficiency. For a small number of processors the paralellization overhead may reduce efficiency.
+The function `RandomizedCondSVDFMM.m` is the same algorithm as in `RandomizedCondSVD.m`, with all matrix-matrix multiplications performed with mexBBFMM3D. The basic package is for a single core machine. A parallel version of the algorithm is available for use in cluster machines. The parallel function `RandomizedCondSVDFMMp.m` looks for available processors and splits multiplications in smaller parts to improve efficiency. For machines with fewer than 12 processors the paralellization overhead may reduce efficiency, and it is not recommended.	
 
-This function is presented as an application in which mexBBFMM3D can be used as a black-box algorithm. There are more efficient algorithms to perform fast randomized SVD. 	
-
-Function structure: `[U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N,a)`
+Function structure: `[U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N)`
 
 Input:
 
@@ -316,8 +325,6 @@ grid  : structure with vectors grid.x, grid.y, grid.z
         The meshed grid can be created from x,y and z vectors by using function
         gridmesh = CreateRegMesh(grid);
 N     : rank of reduced rank svd 
-a     : oversampling parameter for randSVD
-q     : is 1, or 2 (hardcoded below to = 1)
 Kernel: covariance type, see compilemex for options
 corlength: correlation length in x and y isotropic
 corlengthz: correlation length in z
@@ -332,16 +339,17 @@ gridmesh = CreateRegMesh(grid);
 [U,S,V] = RandomizedCondSVDFMM(gridmesh,'GAUSSIAN',100,10,3,9);
 ```
 
-Performance comparison (In progress):
+Performance comparison:
 
 |   m/N   |  Time for randSVD with BBFMM (sec)  |  Time for basic randSVD (sec)  | Speedup  |
 | -------: |:------------------------:|:-------------------:| :---------------:|
-| 8000/100 |      146.034             |               34.697|                  |   
-|10000/100 |      184.368             |       (1000)  62.071|                  |
-|20000/100 |      1207 ***            |      (2000) 1001.9**|                  |   
+| 4375/100 |                   |               |                  |   
+|10000/100 |                   |       |                  |
+|20000/100 |                  |      |   
 
-** Note: rsvd() developed by Antoine Liutkus  (c) Inria 2014   does the same thing in 207 seconds. Investigate.
-*** Used this before for 24040 with N=30 and less, and utilizing 24 processors so the benefit is more significant.               
+Relative Difference in calculated singular values:               
+
+![]()              
                  
 
 ## APPENDIX<a name="ref_app"></a>
@@ -352,7 +360,7 @@ __Kernel Options__
 
 `L` : length scale parameter
 
-`\sigma^2`: variance parameter
+``\sigma^2``: variance parameter
 
 #### Example of kernel types:
 + Gaussian kernel 

@@ -1,7 +1,9 @@
-function [U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N,a)
+function [U,S,V] = RandomizedCondSVDFMM(grid,Kernel,Corlength,Corlengthz,N)
+
 tic
-% Parallel code for low-rank decomposition of covariance kernel Q
+% Code for low-rank decomposition of covariance kernel Q
 % via randomized algorithm
+% No parallelization for small problems
 % Performs fast SVD for covariance matrix and finds approximate U, S, and V
 % To reduce computational cost, randSVD is combined with BBFMM3D
 % Care should be taken to compile  BBFMM3D for the covariance
@@ -25,8 +27,6 @@ tic
 %               The meshed grid can be created from x,y and z vectors by using 
 %          function gridmesh = CreateRegMesh(grid);
 %        N : rank of reduced rank svd 
-%        a : oversampling parameter for randSVD
-%        q is 1, or 2 (hardcoded below to = 1)
 %        Kernel Q: covariance type, see compilemex for options
 %        corlength: correlation length in x and y isotropic
 %        corlengthz: correlation length in z
@@ -96,114 +96,28 @@ end
 % for q = 1 Y = Q*Q*Q*Omega
 q = 1;
 
-
-% set up parallel pool
-% matrix H is split in submatrices depenting on how many processors are
-% available, and then the QH matrix is constucted by assumptling the
-% submatrices i.e. QH = [QH1 QH2 ... QHn].
-
-% find how many processors are available
-disp('Setting up parfor')
-% check if there is existing parallel job running
-% if so, delete it
-p = gcp('nocreate');
-if ~isempty(p); delete(gcp); end
-myCluster  = parcluster('local');
-delete(myCluster.Jobs);
-
-% start parallel job, find out number of workers available
-poolobj = parpool('local');
-noproc = poolobj.NumWorkers;
-%noproc=12;
-subH = (N+a)/noproc;
-if mod(N+a,noproc)~=0
-    disp(['N is ',num2str(N)])
-    disp(['a is ',num2str(a)])
-    disp(['noproc is ',num2str(noproc)])
-    % decrease a to fit noproc
-    % no need to regenerate Omega, just use fewer columns
-    disp('Adjusting a in randSVD to fit number of processors') 
-    a = floor(subH)*noproc - N; 
-    if a < 1
-        a = ceil(subH)*noproc-N;
-    end
-    if (N+a) < (N+1)
-        display('Error in randomized svd');
-        display('Problem with dimensions of Omega')
-        keyboard;
-    end
-    disp(['New a is ',num2str(a),' and N+a is ',num2str(N+a)])		
-    %a = input('Adjust ling a to fit noproc');
-end
-
-%subH is the number of submatrices depending on the number of processors
-subH = (N+a)/noproc;
-
-if mod(subH,1) > 0; keyboard; end;
-
-% end of setting up parallel runs
-% start of SVD
-
-
 rng(5);
-Omega = randn(m,N+a);
 
+P = min(2*N,m);
+Omega = randn(m,P);
            
-Y=zeros(m,N+a);    
+Y=zeros(m,P);    
 
 % Y = Q*Omega;
 disp('Computation of Y, Step 1/5 starting'); 
-parfor i=1:noproc
-    start = subH*(i-1)+1;
-    fin = i*subH;
-    
-    Hi = Omega(:,start:fin);
-    res(:,:,i) = runmexBBFMM3D(source,Hi,nCheb,L,level,ExecName,use_chebyshev,0);
-    disp(['Multiplication of colums from ',num2str(start),' to ',num2str(fin)])
-end
-
-for i=1:noproc
-    start=subH*(i-1)+1;
-    fin=i*subH;
-    Y(:,start:fin)=res(:,:,i);
-end
+Y = runmexBBFMM3D(source,Omega,nCheb,L,level,ExecName,use_chebyshev,0);
 
 % Y = (Q*Q)^q*(Q*Omega);
 for d = 1 : 2*q
    disp(['Computation of Y, Step ',num2str(d+1),'/5 starting'])
-   parfor i=1:noproc
-    	start = subH*(i-1)+1;
-    	fin = i*subH;
-        Hi = Y(:,start:fin);
-        res(:,:,i) = runmexBBFMM3D(source,Hi,nCheb,L,level,ExecName,use_chebyshev,0);
-    	disp(['Multiplication of colums from ',num2str(start),' to ',num2str(fin)])    
-    end
-    
-    for i=1:noproc
-    	start = subH*(i-1)+1;
-     	fin = i*subH;
-     	Y(:,start:fin) = res(:,:,i);
-    end    
+   Y= runmexBBFMM3D(source,Y,nCheb,L,level,ExecName,use_chebyshev,0);    
 end
 % step 2
 [R,~,~] =svd(Y,0); 
 
 % step 3  B = R'*Q --> B' = Q'R = QR
 disp('Computation of B, Last Step starting');
-parfor i=1:noproc
-        start = subH*(i-1)+1;
-        fin = i*subH;
-        Hi = R(:,start:fin);
-        res(:,:,i) = runmexBBFMM3D(source,Hi,nCheb,L,level,ExecName,use_chebyshev,0);
-	disp(['Multiplication of colums from ',num2str(start),' to ',num2str(fin)])
-end
-
-disp('Computation of B, Last Step finished');
-for i=1:noproc
-    start=subH*(i-1)+1;
-    fin=i*subH;
-    B(:,start:fin)=res(:,:,i);
-end
+B = runmexBBFMM3D(source,R,nCheb,L,level,ExecName,use_chebyshev,0);
 
 % step 4
 [V,S,Ut] = svd(B,0);
@@ -212,22 +126,19 @@ end
 U = R*Ut;
 U = U(:,1:N); S = S(1:N,1:N); V = V(:,1:N);
 
-% close parallel pool
-p = gcp('nocreate');
-if ~isempty(p)
-    delete(gcp)
-end
 
 
 toc
-plotflag=false;
+%Plotting only works for imported grid
+plotflag=true;
+zlevel=mean(grid.z);
 if plotflag
 %Ploting the first three bases
-figure; plotU(grid,U(:,1),1005)
+figure; plotU(grid,U(:,1),zlevel)
 title('Basis 1')
-figure; plotU(grid,U(:,2),1005)
+figure; plotU(grid,U(:,2),zlevel)
 title('Basis 2')
-figure; plotU(grid,U(:,3),1005)
+figure; plotU(grid,U(:,3),zlevel)
 title('Basis 3')
 
 end
